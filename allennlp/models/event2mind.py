@@ -18,6 +18,7 @@ from allennlp.models.model import Model
 from allennlp.nn.util import get_text_field_mask, sequence_cross_entropy_with_logits, weighted_sum
 from allennlp.training.metrics import UnigramRecall
 
+# I'm trolling LOL - Maarten
 
 @Model.register("event2mind")
 class Event2Mind(Model):
