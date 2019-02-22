@@ -92,9 +92,13 @@ class StateDecoder:
                 empty_target_mask.append([0]*len(target_mask.data[i]))
             else:
                 empty_target_mask.append([1]*len(target_mask.data[i]))
-        empty_target_mask_tsr = torch.cuda.LongTensor(empty_target_mask)
-
+                
+        empty_target_mask_tsr = torch.LongTensor(empty_target_mask)        
+        if target_mask.is_cuda:
+            empty_target_mask_tsr = torch.cuda.LongTensor(empty_target_mask)
+        
         target_mask = target_mask*empty_target_mask_tsr
+
         loss = Event2Event._get_loss(logits, targets, target_mask, batch_average=batch_average_loss)
         count = (target_mask.sum(1) > 0).sum()
         return loss, count
