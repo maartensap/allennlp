@@ -88,7 +88,7 @@ class StateDecoder:
 
         empty_target_mask = []
         for i, t in enumerate(targets.data):
-            if numpy.count_nonzero(t.data) == 2:
+            if t.nonzero().shape[0] == 2:
                 empty_target_mask.append([0]*len(target_mask.data[i]))
             else:
                 empty_target_mask.append([1]*len(target_mask.data[i]))
@@ -432,7 +432,7 @@ class Event2Event(Model):
 
         empty_target_mask = []
         for i, t in enumerate(targets.data):
-            if numpy.count_nonzero(t.data) == 2:
+            if t.nonzero().shape[0] == 2:
                 empty_target_mask.append([0]*len(target_mask.data[i]))
             else:
                 empty_target_mask.append([1]*len(target_mask.data[i]))
@@ -501,7 +501,7 @@ class Event2Event(Model):
             #             "targets only: {} Keys in states only: {}".format(target_only, states_only))
             total_loss = 0
             loss_count = 0
-
+            
             for name, state in self._states.items():
                 loss, count = state.greedy_search(
                     final_encoder_output,target_tokens[name])
@@ -533,14 +533,16 @@ class Event2Event(Model):
                         self.vocab.get_vocab_size(self._target_namespace))
                 else:
                     all_top_k_predictions, log_probabilities = state.beam_search(
-                        final_encoder_output,k,self._get_num_decoding_steps(target_tokens.get(name)),
-                        batch_size,source_mask,self._start_index, self._end_index,
-                        self.vocab.get_vocab_size(self._target_namespace))
+                      final_encoder_output,k,self._get_num_decoding_steps(target_tokens.get(name)),
+                      batch_size,source_mask,self._start_index, self._end_index,
+                      self.vocab.get_vocab_size(self._target_namespace))
                 
                 if target_tokens:
                     # Error here, something about a size mismatch in update_recalls
-                    ip_embed()
-                    self._update_recalls(all_top_k_predictions, target_tokens[name], state._recalls)
+                    # ip_embed()
+                    # target_tokens[name]["tokens"] is batch x seq_len
+                    # self._update_recalls(
+                    #   all_top_k_predictions, target_tokens[name], state._recalls)
                     # also update loss counter
                     state._xent(output_dict[name+"_loss"],output_dict[name+"_count"])
                     all_refs = target_tokens[name + "_dom"]["tokens"][:, :, 1:].contiguous()
@@ -550,10 +552,9 @@ class Event2Event(Model):
                             rec(refs, pred, mask=None, end_index=self._end_index,
                                 none_index=self._none_index, dont_count_empty_predictions=True)
 
-                    ip_embed();exit()    
+                    # ip_embed();exit()    
                 output_dict["{}_top_k_predictions".format(name)] = all_top_k_predictions
                 output_dict["{}_top_k_log_probabilities".format(name)] = log_probabilities
-
 
         return output_dict
 
@@ -759,9 +760,13 @@ class Event2Event(Model):
         """
         relevant_targets = targets[:, 1:].contiguous()  # (batch_size, num_decoding_steps)
         relevant_mask = target_mask[:, 1:].contiguous()  # (batch_size, num_decoding_steps)
+        
+        # For backwards compatibility
+        average = "batch" if batch_average else None
+        
         loss = sequence_cross_entropy_with_logits(
             logits, relevant_targets, relevant_mask,
-            batch_average=batch_average)
+            average = average)
 
         return loss
 

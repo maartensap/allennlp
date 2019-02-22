@@ -56,6 +56,7 @@ class BleuN(Metric):
         hypotheses, references, mask = self.unwrap_to_tensors(hypotheses, references, mask)
 
         # Some sanity checks.
+        
         if references.dim() != hypotheses.dim():
             raise ConfigurationError("references must have dimension == predictions.dim() but "
                                      "found tensor of shape: {}".format(references.size()))

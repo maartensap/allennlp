@@ -1,7 +1,7 @@
 from overrides import overrides
 
 from allennlp.training.metrics.metric import Metric
-
+from IPython import embed as ip_embed
 
 @Metric.register("average")
 class Average(Metric):
@@ -13,7 +13,7 @@ class Average(Metric):
     """
     def __init__(self) -> None:
         self._total_value = 0.0
-        self._count = 0
+        self._count = 0.0
 
     @overrides
     def __call__(self, value):
@@ -24,7 +24,7 @@ class Average(Metric):
             The value to average.
         """
         self._total_value += list(self.unwrap_to_tensors(value))[0]
-        self._count += 1
+        self._count += 1.0
 
     @overrides
     def get_metric(self, reset: bool = False):
@@ -33,7 +33,7 @@ class Average(Metric):
         -------
         The average of all values that were passed to ``__call__``.
         """
-        average_value = self._total_value / self._count if self._count > 0 else 0
+        average_value = float(self._total_value) / float(self._count) if self._count > 0.0 else 0.0
         if reset:
             self.reset()
         return average_value
@@ -41,7 +41,7 @@ class Average(Metric):
     @overrides
     def reset(self):
         self._total_value = 0.0
-        self._count = 0
+        self._count = 0.0
 
 
 @Metric.register("batched_average")

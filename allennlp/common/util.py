@@ -33,6 +33,8 @@ from allennlp.common.params import Params
 from allennlp.common.tqdm import Tqdm
 from allennlp.common.tee_logger import TeeLogger
 
+from IPython import embed as ip_embed
+
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 JsonDict = Dict[str, Any]  # pylint: disable=invalid-name
@@ -429,7 +431,10 @@ def get_frozen_and_tunable_parameter_names(model: torch.nn.Module) -> List:
     return [frozen_parameter_names, tunable_parameter_names]
 
 def dump_metrics(file_path: str, metrics: Dict[str, Any], log: bool = False) -> None:
-    metrics_json = json.dumps(metrics, indent=2)
+    try:
+        metrics_json = json.dumps(metrics, indent=2)
+    except:
+        ip_embed()
     with open(file_path, "w") as metrics_file:
         metrics_file.write(metrics_json)
     if log:
