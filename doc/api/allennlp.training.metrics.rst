@@ -49,6 +49,12 @@ allennlp.training.metrics
    :undoc-members:
    :show-inheritance:
 
+.. _bleu:
+.. automodule:: allennlp.training.metrics.bleu
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. _categorical-accuracy:
 .. automodule:: allennlp.training.metrics.categorical_accuracy
    :members:
@@ -123,6 +129,12 @@ allennlp.training.metrics
 
 .. _unigram-recall:
 .. automodule:: allennlp.training.metrics.unigram_recall
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. _auc:
+.. automodule:: allennlp.training.metrics.auc
    :members:
    :undoc-members:
    :show-inheritance:

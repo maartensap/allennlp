@@ -539,7 +539,7 @@ class Event2Event(Model):
                 
                 if target_tokens:
                     # Error here, something about a size mismatch in update_recalls
-                    # ip_embed()
+                    ip_embed()
                     self._update_recalls(all_top_k_predictions, target_tokens[name], state._recalls)
                     # also update loss counter
                     state._xent(output_dict[name+"_loss"],output_dict[name+"_count"])

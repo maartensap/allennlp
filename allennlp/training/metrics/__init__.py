@@ -7,6 +7,7 @@ accuracy or F1 score.
 from allennlp.training.metrics.attachment_scores import AttachmentScores
 from allennlp.training.metrics.average import Average
 from allennlp.training.metrics.boolean_accuracy import BooleanAccuracy
+from allennlp.training.metrics.bleu import BLEU
 from allennlp.training.metrics.categorical_accuracy import CategoricalAccuracy
 from allennlp.training.metrics.conll_coref_scores import ConllCorefScores
 from allennlp.training.metrics.covariance import Covariance
@@ -21,7 +22,11 @@ from allennlp.training.metrics.sequence_accuracy import SequenceAccuracy
 from allennlp.training.metrics.span_based_f1_measure import SpanBasedF1Measure
 from allennlp.training.metrics.squad_em_and_f1 import SquadEmAndF1
 from allennlp.training.metrics.unigram_recall import UnigramRecall
+from allennlp.training.metrics.auc import Auc
 
 from allennlp.training.metrics.rouge_score import RougeL, RougeN
 from allennlp.training.metrics.bleu_score import BleuN
 from allennlp.training.metrics.average import BatchedAverage
+
+
+

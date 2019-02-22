@@ -41,7 +41,7 @@ class TestMain(AllenNlpTestCase):
 
         fake_evaluate = FakeEvaluate()
 
-        sys.argv = ["allennlp.run", "evaluate"]
+        sys.argv = ["allennlp", "evaluate"]
         main(subcommand_overrides={"evaluate": fake_evaluate})
 
         assert fake_evaluate.add_subparser_called
@@ -74,9 +74,11 @@ class TestMain(AllenNlpTestCase):
                 "model": {
                         "type": "duplicate-test-tagger",
                         "text_field_embedder": {
-                                "tokens": {
-                                        "type": "embedding",
-                                        "embedding_dim": 5
+                                "token_embedders": {
+                                        "tokens": {
+                                                "type": "embedding",
+                                                "embedding_dim": 5
+                                        }
                                 }
                         },
                         "encoder": {
@@ -101,7 +103,7 @@ class TestMain(AllenNlpTestCase):
         serialization_dir = self.TEST_DIR / 'serialization'
 
         # Run train with using the non-allennlp module.
-        sys.argv = ["bin/allennlp",
+        sys.argv = ["allennlp",
                     "train", str(config_path),
                     "-s", str(serialization_dir)]
 

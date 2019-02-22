@@ -1,5 +1,6 @@
 # pylint: disable=invalid-name
 import copy
+import os
 
 import torch
 
@@ -17,9 +18,11 @@ class ArchivalTest(AllenNlpTestCase):
                 "model": {
                         "type": "simple_tagger",
                         "text_field_embedder": {
-                                "tokens": {
-                                        "type": "embedding",
-                                        "embedding_dim": 5
+                                "token_embedders": {
+                                        "tokens": {
+                                                "type": "embedding",
+                                                "embedding_dim": 5
+                                        }
                                 }
                         },
                         "encoder": {
@@ -73,6 +76,17 @@ class ArchivalTest(AllenNlpTestCase):
         params2 = archive.config
         assert params2.as_dict() == params_copy
 
+    def test_archive_model_uses_archive_path(self):
+
+        serialization_dir = self.TEST_DIR / 'serialization'
+        # Train a model
+        train_model(self.params, serialization_dir=serialization_dir)
+        # Use a new path.
+        archive_model(serialization_dir=serialization_dir,
+                      archive_path=serialization_dir / "new_path.tar.gz")
+        archive = load_archive(serialization_dir / 'new_path.tar.gz')
+        assert archive
+
     def test_extra_files(self):
 
         serialization_dir = self.TEST_DIR / 'serialization'
@@ -90,6 +104,10 @@ class ArchivalTest(AllenNlpTestCase):
         # The param in the data should have been replaced with a temporary path
         # (which we don't know, but we know what it ends with).
         assert params.get('train_data_path').endswith('/fta/train_data_path')
+
+        # The temporary path should be accessible even after the load_archive
+        # function returns.
+        assert os.path.exists(params.get('train_data_path'))
 
         # The validation data path should be the same though.
         assert params.get('validation_data_path') == str(self.FIXTURES_ROOT / 'data' / 'sequence_tagging.tsv')

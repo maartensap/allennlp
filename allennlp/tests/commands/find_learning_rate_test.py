@@ -3,14 +3,18 @@ import argparse
 import os
 import pytest
 
+import torch
+
 from allennlp.common import Params
 from allennlp.data import Vocabulary, DataIterator
 from allennlp.models import Model
 from allennlp.common.checks import ConfigurationError
 from allennlp.common.testing import AllenNlpTestCase
-from allennlp.commands.train import datasets_from_params, Trainer
+from allennlp.commands.train import Trainer
 from allennlp.commands.find_learning_rate import search_learning_rate, \
     find_learning_rate_from_args, find_learning_rate_model, FindLearningRate
+from allennlp.training.util import datasets_from_params
+
 
 class TestFindLearningRate(AllenNlpTestCase):
 
@@ -20,9 +24,11 @@ class TestFindLearningRate(AllenNlpTestCase):
                         "model": {
                             "type": "simple_tagger",
                             "text_field_embedder": {
-                                "tokens": {
-                                    "type": "embedding",
-                                    "embedding_dim": 5
+                                "token_embedders": {
+                                    "tokens": {
+                                        "type": "embedding",
+                                        "embedding_dim": 5
+                                    }
                                 }
                             },
                             "encoder": {
@@ -44,7 +50,8 @@ class TestFindLearningRate(AllenNlpTestCase):
                     })
 
     def test_find_learning_rate(self):
-        find_learning_rate_model(self.params(), os.path.join(self.TEST_DIR, 'test_find_learning_rate'),
+        find_learning_rate_model(self.params(),
+                                 os.path.join(self.TEST_DIR, 'test_find_learning_rate'),
                                  start_lr=1e-5,
                                  end_lr=1,
                                  num_batches=100,
@@ -89,7 +96,6 @@ class TestFindLearningRate(AllenNlpTestCase):
                                  stopping_factor=None,
                                  force=True)
 
-
     def test_find_learning_rate_args(self):
         parser = argparse.ArgumentParser(description="Testing")
         subparsers = parser.add_subparsers(title='Commands', metavar='')
@@ -115,6 +121,21 @@ class TestFindLearningRate(AllenNlpTestCase):
             assert cm.exception.code == 2  # argparse code for incorrect usage
 
 
+    @pytest.mark.skipif(torch.cuda.device_count() < 2,
+                        reason="Need multiple GPUs.")
+    def test_find_learning_rate_multi_gpu(self):
+        params = self.params()
+        params["trainer"]["cuda_device"] = [0, 1]
+        find_learning_rate_model(params,
+                                 os.path.join(self.TEST_DIR, 'test_find_learning_rate_multi_gpu'),
+                                 start_lr=1e-5,
+                                 end_lr=1,
+                                 num_batches=100,
+                                 linear_steps=True,
+                                 stopping_factor=None,
+                                 force=False)
+
+
 class TestSearchLearningRate(AllenNlpTestCase):
 
     def setUp(self):
@@ -123,9 +144,11 @@ class TestSearchLearningRate(AllenNlpTestCase):
                 "model": {
                     "type": "simple_tagger",
                     "text_field_embedder": {
-                        "tokens": {
-                            "type": "embedding",
-                            "embedding_dim": 5
+                        "token_embedders": {
+                            "tokens": {
+                                "type": "embedding",
+                                "embedding_dim": 5
+                            }
                         }
                     },
                     "encoder": {
@@ -144,7 +167,7 @@ class TestSearchLearningRate(AllenNlpTestCase):
                     "num_epochs": 2,
                     "optimizer": "adam"
                 }
-        })
+            })
         all_datasets = datasets_from_params(params)
         vocab = Vocabulary.from_params(
             params.pop("vocabulary", {}),
@@ -159,12 +182,12 @@ class TestSearchLearningRate(AllenNlpTestCase):
         serialization_dir = os.path.join(self.TEST_DIR, 'test_search_learning_rate')
 
         self.trainer = Trainer.from_params(model,
-                                      serialization_dir,
-                                      iterator,
-                                      train_data,
-                                      params=trainer_params,
-                                      validation_data=None,
-                                      validation_iterator=None)
+                                           serialization_dir,
+                                           iterator,
+                                           train_data,
+                                           params=trainer_params,
+                                           validation_data=None,
+                                           validation_iterator=None)
 
     def test_search_learning_rate_with_num_batches_less_than_ten(self):
         with pytest.raises(ConfigurationError):
@@ -175,6 +198,7 @@ class TestSearchLearningRate(AllenNlpTestCase):
         assert len(learning_rates_losses) > 1
 
     def test_search_learning_rate_without_stopping_factor(self):
-        learning_rates, losses = search_learning_rate(self.trainer, num_batches=100, stopping_factor=None)
+        learning_rates, losses = search_learning_rate(self.trainer, num_batches=100,
+                                                      stopping_factor=None)
         assert len(learning_rates) == 101
         assert len(losses) == 101
